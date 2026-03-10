@@ -1,12 +1,18 @@
 package fr.kotlini.commons.storage;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.*;
@@ -104,6 +110,40 @@ class CachedDataStorageTest {
         cached.save(new TestData("p1", 100));
         cached.stop();
         assertThat(cached.getCache()).isEmpty();
+    }
+
+    @RepeatedTest(500)
+    void testConcurrentLoadOrCreateBuildsOnlyOnce() throws Exception {
+        AtomicInteger buildCount = new AtomicInteger();
+        CachedDataStorage<TestData> storage = new CachedDataStorage<>(persistence, executor, id -> {
+            buildCount.incrementAndGet();
+            return new TestData(id, 0);
+        }, LOGGER);
+
+        int count = 16;
+        ScheduledExecutorService pool = Executors.newScheduledThreadPool(count);
+        CyclicBarrier barrier = new CyclicBarrier(count);
+        List<Future<TestData>> futures = new ArrayList<>();
+
+        for (int i = 0; i < count; i++) {
+            futures.add(pool.submit(() -> {
+                barrier.await();
+                return storage.loadOrCreate("p1");
+            }));
+        }
+
+        List<TestData> results = new ArrayList<>();
+        for (Future<TestData> future : futures) {
+            results.add(future.get());
+        }
+        pool.shutdown();
+        pool.close();
+
+        assertThat(buildCount.get()).isEqualTo(1);
+        TestData expected = results.getFirst();
+        for (TestData result : results) {
+            assertThat(result).isSameAs(expected);
+        }
     }
 
     @Test
