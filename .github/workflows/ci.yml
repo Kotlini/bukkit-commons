@@ -28,9 +28,3 @@ jobs:
       - name: Build & Test
         run: ./gradlew build
 
-      - name: Publish
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: ./gradlew publish
-        env:
-          USERNAME: ${{ github.actor }}
-          TOKEN: ${{ secrets.GB_TOKEN }}

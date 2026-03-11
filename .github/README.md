@@ -2,14 +2,16 @@
 
 Lightweight shared library for minecraft plugins, config loading, json storage and safe hook handler
 
+[![](https://jitpack.io/v/Kotlini/bukkit-commons.svg)](https://jitpack.io/#Kotlini/bukkit-commons)
+
 Then in your plugin's `build.gradle`:
 ```groovy
 repositories {
-    mavenLocal()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation 'fr.kotlini:bukkit-commons:{SEE-IN-PACKAGE}'
+    implementation 'com.github.Kotlini:bukkit-commons:Tag'
 }
 ```
 
