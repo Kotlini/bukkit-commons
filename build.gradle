@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'fr.kotlini'
-version = '0.0.1'
+version = '0.0.2'
 
 repositories {
     maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
